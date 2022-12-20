@@ -1,7 +1,7 @@
 <?php
-namespace ApptimusCore\Debee;
+namespace Apptimuscore\Debee;
 
-use ApptimusCore\Debee\Console\Commands\TestVersion;
+use Apptimuscore\Debee\Console\Commands\TestVersion;
 use Illuminate\Support\ServiceProvider;
 
 class DebeeServiceProvider extends ServiceProvider
