@@ -1,0 +1,19 @@
+{
+    "name": "apptimus/debee",
+    "description": "This will manage database",
+    "type": "Library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Apptimus\\Debee\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "vithuanaz",
+            "email": "vithuanaz1995@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}
