@@ -1,6 +1,6 @@
 <?php
 
-namespace Apptimus\Debee\Console\Commands;
+namespace ApptimusCore\Debee\Console\Commands;
 
 use Illuminate\Console\Command;
 use GuzzleHttp\Client;
@@ -28,6 +28,6 @@ class TestVersion extends Command
      */
     public function handle()
     {
-        $this->info('ASD');
+        $this->info('Yes!');
     }
 }

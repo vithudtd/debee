@@ -1,11 +1,11 @@
 {
-    "name": "apptimus/debee",
+    "name": "ApptimusCore/debee",
     "description": "This will manage database",
     "type": "Library",
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Apptimus\\Debee\\": "src/"
+            "ApptimusCore\\Debee\\": "src/"
         }
     },
     "authors": [
