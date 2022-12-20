@@ -1,6 +1,6 @@
 <?php
 
-namespace Apptimuscore\Debee\Console\Commands;
+namespace Apptimus\Debee\Console\Commands;
 
 use Illuminate\Console\Command;
 use GuzzleHttp\Client;
