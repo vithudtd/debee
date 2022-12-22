@@ -76,6 +76,8 @@ class UpdateDB extends Command
                                 $this->info('Your database version is already up to date.');
                             } else {
                                 try {
+                                    $success = 0;
+                                    $failed = 0;
                                     foreach ($data->data as $key => $value) {
                                         $version = new Version();
                                         $version->version = $value->version;
@@ -83,15 +85,17 @@ class UpdateDB extends Command
                                         try {
                                             DB::unprepared($value->query);
                                             $version->status = 'SUCCESS';
+                                            $success++;
                                         } catch (\Throwable $th) {
                                             // $this->info($th->getMessage());
                                             $version->remarks = $th->getMessage();
                                             $version->status = 'FAILED';
+                                            $failed++;
                                         }
                                         $version->save();
                                     }
 
-                                    $this->info('Database has been updated. (V'.$currentVersion.' to V'.$data->last_version.')');
+                                    $this->info('Queries executed, '.$success.' success, '.$failed.' errors, 0 warnings => (V'.$currentVersion.' to V'.$data->last_version.')');
                                     $this->line('Your DB version is now '.$data->last_version);
                                     $currentVersion = $data->last_version;
                                 } catch (\Throwable $th) {
