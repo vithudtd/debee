@@ -39,6 +39,14 @@ class UpdateDB extends Command
         } catch (\Throwable $th) {
             //
         }
+        try {
+            $user_id = Preference::where('key','DEBEE_USER_ID')->first();
+            if (isset($user_id)) {
+                $user_id = $user_id->value;
+            }
+        } catch (\Throwable $th) {
+            $user_id = '';
+        }
 
         if (isset($prodject_key) && $prodject_key != null && $prodject_key != '') {
             try {
@@ -84,7 +92,7 @@ class UpdateDB extends Command
                                         $version = new Version();
                                         $version->version = $value->version;
                                         $version->query = $value->query;
-                                        if ($value->is_run == 1) {
+                                        if ($user_id == $value->user_id && $value->is_run == 1) {
                                             $version->remarks = '****This query has already been executed in your database****';
                                             $version->status = 'SUCCESS';
                                         } else {
