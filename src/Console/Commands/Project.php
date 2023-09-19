@@ -32,13 +32,31 @@ class Project extends Command
         $client = new Client();
         $reference = $this->argument('reference');
         if ($reference == 'create') {
-            $name = $this->ask('Project name?');
+            $name = $this->ask('Project name ?');
             if ($name == '') {
                 $this->error('Invalid name');
                 return 0;
             }
 
-            $res = $client->request('GET', config('debee.app_url').'/project/create?n='.$name, [
+
+            $isMultiTenant = $this->choice('Is Multi-tenant ?', ['no', 'yes'], 0);
+            $tenantDbDetailsTableName = null; // Initialize with default value or set to null
+            $tenantDbDetailsColumnName = null;
+            if ($isMultiTenant == 'yes') {
+                $tenantDbDetailsTableName = $this->ask('Tenant DB Details `TABLE` Name ?');
+                if ($tenantDbDetailsTableName == '') {
+                    $this->error('Invalid table name');
+                    return 0;
+                }
+
+                $tenantDbDetailsColumnName = $this->ask('Tenant DB Details `COLUMN` Name ?');
+                if ($tenantDbDetailsColumnName == '') {
+                    $this->error('Invalid column name');
+                    return 0;
+                }
+            }
+
+            $res = $client->request('GET', config('debee.app_url') . '/project/create?n=' . $name . '&is_multi_tenant=' . $isMultiTenant . '&table_name=' . $tenantDbDetailsTableName . '&column_name=' . $tenantDbDetailsColumnName, [
                 'form_params' => [
                     //
                 ]
@@ -46,15 +64,15 @@ class Project extends Command
 
             $response = $res->getBody()->getContents();
             $data = json_decode($response);
+
             if ($data->success == true) {
                 $this->info('Project has been successfully created');
-                $this->line('Project Key => '.$data->project->key);
+                $this->comment('Project Key => ' . $data->project->key);
             } else {
                 $this->error($data->error);
             }
-        }
-        else if ($reference == 'show') {
-            $res = $client->request('GET', config('debee.app_url').'/project/show', [
+        } else if ($reference == 'show') {
+            $res = $client->request('GET', config('debee.app_url') . '/project/show', [
                 'form_params' => [
                     //
                 ]
@@ -66,13 +84,12 @@ class Project extends Command
                 $this->info('projects');
                 $this->info('------------');
                 foreach ($data->data as $key => $project) {
-                    $this->line($project->name." => ".$project->key);
+                    $this->line($project->name . " => " . $project->key);
                 }
             } else {
                 $this->error($data->error);
             }
-        }
-        else {
+        } else {
             $this->error('Invalid preference');
         }
 

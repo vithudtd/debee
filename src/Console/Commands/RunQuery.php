@@ -29,13 +29,19 @@ class RunQuery extends Command
      */
     public function handle()
     {
+        $is_multi_tenant = '0';
         try {
             $preference = Preference::where('key','DEBEE_PROJECT_KEY')->first();
             $preferenceUser = Preference::where('key','DEBEE_USER_ID')->first();
+            $preferenceIsMultitenant = Preference::where('key','IS_MULTI_TENANT')->first();
             if (isset($preference)) {
                 $prodject_key = $preference->value;
-            }if (isset($preferenceUser)) {
+            }
+            if (isset($preferenceUser)) {
                 $user_id = $preferenceUser->value;
+            }
+            if (isset($preferenceIsMultitenant)) {
+                $is_multi_tenant = $preferenceIsMultitenant->value;
             }
         } catch (\Throwable $th) {
             //
@@ -44,8 +50,14 @@ class RunQuery extends Command
 
         if (isset($prodject_key) && $prodject_key != null && $prodject_key != '') {
             if (isset($user_id) && $user_id != null && $user_id != '') {
+                $is_root_db_changes = '1';
+                if ($is_multi_tenant == '1') {
+                    $whichDbChanges = $this->choice('Which database change do you want to push?', ['Root Database', 'Tenant Database'], 0);
+                    $is_root_db_changes = $whichDbChanges == 'Root Database' ? '1' : '0';
+                }
+
                 $client = new Client();
-                $res = $client->request('GET', config('debee.app_url').'/debee/connect?key='.$prodject_key, [
+                $res = $client->request('GET', config('debee.app_url').'/connect?key='.$prodject_key, [
                     'form_params' => [
                         //
                     ]
@@ -55,23 +67,23 @@ class RunQuery extends Command
                 $data = json_decode($response);
 
                 if (isset($data->project) && $data->project != '') {
-                    $this->info(config('debee.app_url').'/db-changes?x='.$prodject_key."&y=".$user_id);
+                    $this->comment(config('debee.app_url').'/db-changes?x='.$prodject_key."&y=".$user_id.'&is_root='.$is_root_db_changes);
                 } else {
                     $this->error("Invalid project key.");
                     $this->line('re-connect the Debee project with this command :');
-                    $this->info('php artisan debee:connect');
+                    $this->comment('php artisan debee:connect');
                 }
             }
             else {
                 $this->error("Debee connection is failed.");
                 $this->line('Connect the Debee project with this command :');
-                $this->info('php artisan debee:connect');
+                $this->comment('php artisan debee:connect');
             }
         }
         else {
             $this->error("Debee connection is failed.");
             $this->line('Connect the Debee project with this command :');
-            $this->info('php artisan debee:connect');
+            $this->comment('php artisan debee:connect');
         }
 
         return 0;

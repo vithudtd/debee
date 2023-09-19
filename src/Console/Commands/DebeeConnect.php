@@ -43,7 +43,7 @@ class DebeeConnect extends Command
 
         $key = $this->ask('Project key');
         try {
-            $res = $client->request('GET', config('debee.app_url').'/debee/connect?key='.$key, [
+            $res = $client->request('GET', config('debee.app_url').'/connect?key='.$key, [
                 'form_params' => [
                     //
                 ]
@@ -89,12 +89,23 @@ class DebeeConnect extends Command
                     }
                     $preferenceU->save();
 
+                    $preferenceM = Preference::where('key','IS_MULTI_TENANT')->first();
+                    if (isset($preferenceM)) {
+                        $preferenceM->value = $project->is_multi_tenant;
+                    }
+                    else {
+                        $preferenceM = new Preference();
+                        $preferenceM->key = 'IS_MULTI_TENANT';
+                        $preferenceM->value = $project->is_multi_tenant;
+                    }
+                    $preferenceM->save();
+
                     $this->info('Your project is connected with the Debee [Project: '.$project->name.']');
                 } else {
                     if ($data->type == 'username') {
                         $this->error('Invalid username');
                         $this->line('Create the Debee account with this command :');
-                        $this->info('php artisan debee:user create');
+                        $this->comment('php artisan debee:user create');
                     } else {
                         $this->error('Password is incorrect');
                     }
