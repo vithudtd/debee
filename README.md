@@ -28,5 +28,7 @@ You can push & pull the database changes with this commands :
 
 ```bash
 php artisan debee:push
-php artisan debee:pull
+php artisan debee:pull OR php artisan debee:pull /all
 ```
+pull => Pull DB Changes (excluding your changes)
+pull /all => Pull All DB Changes (including your changes)
