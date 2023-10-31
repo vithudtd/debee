@@ -24,11 +24,20 @@ php artisan debee:project show
 
 ## Push & Pull
 
-You can push & pull the database changes with this commands :
+Push Database Changes:
 
 ```bash
 php artisan debee:push
-php artisan debee:pull OR php artisan debee:pull /all
 ```
-pull => Pull DB Changes (excluding your changes)
-pull /all => Pull All DB Changes (including your changes)
+
+Pull Database Changes (excluding your changes):
+
+```bash
+php artisan debee:pull
+```
+
+Pull All Database Changes (including your changes):
+
+```bash
+php artisan debee:pull /all
+```
