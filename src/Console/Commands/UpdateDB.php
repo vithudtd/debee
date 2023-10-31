@@ -17,7 +17,7 @@ class UpdateDB extends Command
      *
      * @var string
      */
-    protected $signature = 'debee:pull';
+    protected $signature = 'debee:pull {reference?}';
 
     /**
      * The console command description.
@@ -33,6 +33,18 @@ class UpdateDB extends Command
      */
     public function handle()
     {
+        $reference = $this->argument('reference');
+        if ($reference != "" && $reference != "/all") {
+            $this->error('Invalid reference '. $reference);
+            return 0;
+        }
+
+        if ($reference == "/all") {
+            $updateType = "ALL";
+        } else {
+            $updateType = "OTHER";
+        }
+
         try {
             $preference = Preference::where('key','DEBEE_PROJECT_KEY')->first();
             if (isset($preference)) {
@@ -109,7 +121,7 @@ class UpdateDB extends Command
                                             $version = new Version();
                                             $version->version = $value->version;
                                             $version->query = $value->query;
-                                            if ($user_id == $value->user_id && $value->is_run == 1) {
+                                            if ($updateType == "OTHER" && $user_id == $value->user_id && $value->is_run == 1) {
                                                 $version->remarks = '****This query has already been executed in your database****';
                                                 $version->status = 'SUCCESS';
                                             } else {
@@ -187,7 +199,7 @@ class UpdateDB extends Command
                     $this->error("Invalid tenant_db_column_name");
                     return 0;
                 }
-                
+
                 $query = 'SELECT '.$tenant_db_column_name.' FROM '.$tenant_dbs_table_name;
 
                 $dbSelect = $this->choice('Want to update all tenant databases?',['Yes - All tenant databases in the '.$tenant_dbs_table_name.' table','No - Certain databases'],0);
@@ -203,7 +215,7 @@ class UpdateDB extends Command
                         }
                         $this->table($headers1, $rows1);
                     }
-                    
+
                     $selectedDbs = $this->ask('Please enter DB name (comma separated)');
                     $selectedDbArray = explode(',', $selectedDbs);
                     $quotedSelectedDbArray = array_map(function ($value) {
@@ -255,7 +267,7 @@ class UpdateDB extends Command
                                     if ($data->merge_requests > 0) {
                                         $this->error("There are ".$data->merge_requests." change requests pending, so the database cannot be upgraded.");
                                         $this->comment(config('debee.app_url').'/check-merge-request?cv='.$currentVersion.'&project_key='.$prodject_key.'&is_root='.$is_root_db_changes);
-                                        
+
                                         $rows[$tekey][1] = 'Success';
                                         $rows[$tekey][2] = '-';
                                         $rows[$tekey][3] = '-';
@@ -287,7 +299,7 @@ class UpdateDB extends Command
                                                     $version = new Version();
                                                     $version->version = $value->version;
                                                     $version->query = $value->query;
-                                                    if ($user_id == $value->user_id && $value->is_run == 1) {
+                                                    if ($updateType == "OTHER" && $user_id == $value->user_id && $value->is_run == 1) {
                                                         $version->remarks = '****This query has already been executed in your database****';
                                                         $version->status = 'SUCCESS';
                                                     } else {
