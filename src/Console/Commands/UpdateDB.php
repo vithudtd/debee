@@ -109,51 +109,44 @@ class UpdateDB extends Command
                                 $this->info('--------Contact your project manager---------');
                                 $this->comment(config('debee.app_url').'/check-merge-request?cv='.$currentVersion.'&project_key='.$prodject_key.'&is_root='.$is_root_db_changes);
                             } else {
-                                $currentParts = explode('.', $currentVersion);
-                                $latestParts = explode('.', $data->last_version);
-
-                                for ($i = 0; $i < 3; $i++) {
-                                    if ((int)$currentParts[$i] < (int)$latestParts[$i]) {
-                                        try {
-                                            $success = 0;
-                                            $failed = 0;
-                                            $total = 0;
-                                            foreach ($data->data as $key => $value) {
-                                                $total++;
-                                                $version = new Version();
-                                                $version->version = $value->version;
-                                                $version->query = $value->query;
-                                                if ($updateType == "OTHER" && $user_id == $value->user_id && $value->is_run == 1) {
-                                                    $version->remarks = '****This query has already been executed in your database****';
+                                if (!version_compare($currentVersion,  $data->last_version)) {
+                                    $this->info('Your database version is already up to date.');
+                                } else {
+                                    try {
+                                        $success = 0;
+                                        $failed = 0;
+                                        $total = 0;
+                                        foreach ($data->data as $key => $value) {
+                                            $total++;
+                                            $version = new Version();
+                                            $version->version = $value->version;
+                                            $version->query = $value->query;
+                                            if ($updateType == "OTHER" && $user_id == $value->user_id && $value->is_run == 1) {
+                                                $version->remarks = '****This query has already been executed in your database****';
+                                                $version->status = 'SUCCESS';
+                                            } else {
+                                                try {
+                                                    DB::unprepared($value->query);
                                                     $version->status = 'SUCCESS';
-                                                } else {
-                                                    try {
-                                                        DB::unprepared($value->query);
-                                                        $version->status = 'SUCCESS';
-                                                        $success++;
-                                                    } catch (\Throwable $th) {
-                                                        // $this->info($th->getMessage());
-                                                        $version->remarks = $th->getMessage();
-                                                        $version->status = 'FAILED';
-                                                        $failed++;
-                                                    }
+                                                    $success++;
+                                                } catch (\Throwable $th) {
+                                                    // $this->info($th->getMessage());
+                                                    $version->remarks = $th->getMessage();
+                                                    $version->status = 'FAILED';
+                                                    $failed++;
                                                 }
-
-                                                $version->save();
                                             }
 
-                                            $this->info('Total queries : '.$total.', executed queries : '.($success + $failed));
-                                            $this->info('Queries executed, '.$success.' success, '.$failed.' errors, 0 warnings => (V'.$currentVersion.' to V'.$data->last_version.')');
-                                            $this->line('Your DB version is now '.$data->last_version);
-                                            $currentVersion = $data->last_version;
-                                        } catch (\Throwable $th) {
-                                            $this->error("There are some errors in the query.");
-                                            $this->error($th->getMessage());
+                                            $version->save();
                                         }
-                                        break;
-                                    } elseif ((int)$currentParts[$i] > (int)$latestParts[$i]) {
-                                        $this->info('Your database version is already up to date.');
-                                        break;
+
+                                        $this->info('Total queries : '.$total.', executed queries : '.($success + $failed));
+                                        $this->info('Queries executed, '.$success.' success, '.$failed.' errors, 0 warnings => (V'.$currentVersion.' to V'.$data->last_version.')');
+                                        $this->line('Your DB version is now '.$data->last_version);
+                                        $currentVersion = $data->last_version;
+                                    } catch (\Throwable $th) {
+                                        $this->error("There are some errors in the query.");
+                                        $this->error($th->getMessage());
                                     }
                                 }
                             }
@@ -285,67 +278,60 @@ class UpdateDB extends Command
                                         $rows[$tekey][8] = '-';
                                         $rows[$tekey][9] = "".$data->merge_requests." change requests pending";
                                     } else {
-                                        $currentParts = explode('.', $currentVersion);
-                                        $latestParts = explode('.', $data->last_version);
-
-                                        for ($i = 0; $i < 3; $i++) {
-                                            if ((int)$currentParts[$i] < (int)$latestParts[$i]) {
-                                                try {
-                                                    $success = 0;
-                                                    $failed = 0;
-                                                    $total = 0;
-                                                    foreach ($data->data as $key => $value) {
-                                                        $total++;
-                                                        $version = new Version();
-                                                        $version->version = $value->version;
-                                                        $version->query = $value->query;
-                                                        if ($updateType == "OTHER" && $user_id == $value->user_id && $value->is_run == 1) {
-                                                            $version->remarks = '****This query has already been executed in your database****';
+                                        if (!version_compare($currentVersion,  $data->last_version)) {
+                                            $this->info('Database version is already up to date.');
+                                            $rows[$tekey][1] = 'Success';
+                                            $rows[$tekey][2] = '-';
+                                            $rows[$tekey][3] = '-';
+                                            $rows[$tekey][4] = '-';
+                                            $rows[$tekey][5] = '-';
+                                            $rows[$tekey][6] = '-';
+                                            $rows[$tekey][7] = '-';
+                                            $rows[$tekey][8] = '-';
+                                            $rows[$tekey][9] = 'DB version is already up to date.';
+                                        } else {
+                                            try {
+                                                $success = 0;
+                                                $failed = 0;
+                                                $total = 0;
+                                                foreach ($data->data as $key => $value) {
+                                                    $total++;
+                                                    $version = new Version();
+                                                    $version->version = $value->version;
+                                                    $version->query = $value->query;
+                                                    if ($updateType == "OTHER" && $user_id == $value->user_id && $value->is_run == 1) {
+                                                        $version->remarks = '****This query has already been executed in your database****';
+                                                        $version->status = 'SUCCESS';
+                                                    } else {
+                                                        try {
+                                                            DB::unprepared($value->query);
                                                             $version->status = 'SUCCESS';
-                                                        } else {
-                                                            try {
-                                                                DB::unprepared($value->query);
-                                                                $version->status = 'SUCCESS';
-                                                                $success++;
-                                                            } catch (\Throwable $th) {
-                                                                $version->remarks = $th->getMessage();
-                                                                $version->status = 'FAILED';
-                                                                $failed++;
-                                                            }
+                                                            $success++;
+                                                        } catch (\Throwable $th) {
+                                                            $version->remarks = $th->getMessage();
+                                                            $version->status = 'FAILED';
+                                                            $failed++;
                                                         }
-
-                                                        $version->save();
                                                     }
 
-                                                    $rows[$tekey][1] = 'Success';
-                                                    $rows[$tekey][2] = $total;
-                                                    $rows[$tekey][3] = $success + $failed;
-                                                    $rows[$tekey][4] = $success;
-                                                    $rows[$tekey][5] = $failed;
-                                                    $rows[$tekey][6] = 0;
-                                                    $rows[$tekey][7] = $currentVersion;
-                                                    $rows[$tekey][8] = $data->last_version;
-                                                    $rows[$tekey][9] = 'updated.';
-
-                                                    $this->info('Queries executed');
-                                                    $currentVersion = $data->last_version;
-                                                } catch (\Throwable $th) {
-                                                    $this->error("There are some errors in the query.");
-                                                    $this->error($th->getMessage());
+                                                    $version->save();
                                                 }
-                                                break;
-                                            } elseif ((int)$currentParts[$i] > (int)$latestParts[$i]) {
-                                                $this->info('Database version is already up to date.');
+
                                                 $rows[$tekey][1] = 'Success';
-                                                $rows[$tekey][2] = '-';
-                                                $rows[$tekey][3] = '-';
-                                                $rows[$tekey][4] = '-';
-                                                $rows[$tekey][5] = '-';
-                                                $rows[$tekey][6] = '-';
-                                                $rows[$tekey][7] = '-';
-                                                $rows[$tekey][8] = '-';
-                                                $rows[$tekey][9] = 'DB version is already up to date.';
-                                                break;
+                                                $rows[$tekey][2] = $total;
+                                                $rows[$tekey][3] = $success + $failed;
+                                                $rows[$tekey][4] = $success;
+                                                $rows[$tekey][5] = $failed;
+                                                $rows[$tekey][6] = 0;
+                                                $rows[$tekey][7] = $currentVersion;
+                                                $rows[$tekey][8] = $data->last_version;
+                                                $rows[$tekey][9] = 'updated.';
+
+                                                $this->info('Queries executed');
+                                                $currentVersion = $data->last_version;
+                                            } catch (\Throwable $th) {
+                                                $this->error("There are some errors in the query.");
+                                                $this->error($th->getMessage());
                                             }
                                         }
                                     }
