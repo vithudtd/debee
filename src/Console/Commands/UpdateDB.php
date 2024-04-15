@@ -79,7 +79,11 @@ class UpdateDB extends Command
 
             if ($is_root_db_changes == '1') {
                 try {
-                    $currentVersion = Version::select('version')->orderBy('version','desc')->first();
+                    $currentVersion = Version::select('version')
+                    ->orderByRaw("CAST(SUBSTRING_INDEX(`version`, '.', 1) AS UNSIGNED) DESC")
+                    ->orderByRaw("CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(`version`, '.', 2), '.', -1) AS UNSIGNED) DESC")
+                    ->orderByRaw("CAST(SUBSTRING_INDEX(`version`, '.', -1) AS UNSIGNED) DESC")
+                    ->first();
                     if (isset($currentVersion)) {
                         $currentVersion = $currentVersion->version;
                     }
@@ -239,7 +243,12 @@ class UpdateDB extends Command
                         Config::set('database.default', 'mysql');
 
                         try {
-                            $currentVersion = Version::select('version')->orderBy('version','desc')->first();
+                            $currentVersion = Version::select('version')
+                            ->orderByRaw("CAST(SUBSTRING_INDEX(`version`, '.', 1) AS UNSIGNED) DESC")
+                            ->orderByRaw("CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(`version`, '.', 2), '.', -1) AS UNSIGNED) DESC")
+                            ->orderByRaw("CAST(SUBSTRING_INDEX(`version`, '.', -1) AS UNSIGNED) DESC")
+                            ->first();
+
                             if (isset($currentVersion)) {
                                 $currentVersion = $currentVersion->version;
                             }
